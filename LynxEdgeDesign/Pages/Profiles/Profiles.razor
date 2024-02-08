@@ -1,0 +1,97 @@
+﻿@page "/profiles"
+@using LynxEdgeDesign.Data.Models
+@inject HttpClient Http
+<PageTitle>LynxEdge Profiles</PageTitle>
+
+
+<div class="row mb-5">
+	<div class="col-12 border border-dark p-3">
+		<h3 class="mb-3">Passenger</h3>
+		<button type="button" class="btn btn-outline-secondary">File CIV &nbsp; <UploadIcon /></button>
+	</div>
+</div>
+
+
+@if (profiles == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<div class="container-fluid">
+		<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+			<button class="btn btn-outline-primary me-md-2" type="button">Add Profile &nbsp; <AddIcon /></button>
+		</div>
+
+	</div>
+	
+	<table class="table table-">
+		<thead>
+		<tr>
+			<th>Id</th>
+			<th>Name</th>
+			<th>CreatedDate</th>
+			<th>Class</th>
+		</tr>
+		</thead>
+		<tbody>
+		@foreach (var profile in profiles)
+		{
+				<tr class="@profile.Class" @onclick="(() => SelectItems(profile.Id, true))">
+				<td>@profile.Id</td>
+				<td>@profile.Name</td>
+				<td>@profile.CreatedDate.ToShortDateString()</td>
+				<td>@profile.Class</td>
+			</tr>
+		}
+		</tbody>
+	</table>
+
+}
+
+@code {
+	private List<string> events = new();
+	private List<Profile> profiles = new()
+	{
+		new Profile
+		{
+			Id = 1, Name = "Test1", CreatedDate = DateTime.Now
+		},
+
+		new Profile
+		{
+			Id = 2, Name = "Test2", CreatedDate = DateTime.Now.AddYears(1)
+		},
+	};
+
+
+	void SelectItems(int index, bool toggle)
+	{
+		var item = profiles.SingleOrDefault(p => p.Id == index);
+ 
+		if (toggle)
+		{
+			item.Class = item.Class == "selected" ? "" : "selected";
+		}
+		else
+		{
+			foreach (var value in profiles)
+			{
+				value.Class = "";
+			}
+			item.Class = "selected";
+		}
+	}
+
+	void showSelected()
+	{
+		events.Clear();
+		foreach (var profile in profiles)
+		{
+			if (profile.Class.Contains("selected"))
+			{
+				events.Add($"'{profile.Name}' selected. With age: '{profile.CreatedDate}'");
+			}
+		}
+	}
+}
