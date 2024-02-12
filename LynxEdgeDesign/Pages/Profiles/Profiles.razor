@@ -1,8 +1,7 @@
 ﻿@page "/profiles"
 @using LynxEdgeDesign.Data.Models
-@inject HttpClient Http
-<PageTitle>LynxEdge Profiles</PageTitle>
 
+<PageTitle>LynxEdge Profiles</PageTitle>
 
 <div class="row mb-5">
 	<div class="col-12 border border-dark p-3">
@@ -12,7 +11,7 @@
 </div>
 
 
-@if (profiles == null)
+@if (_profiles == null)
 {
 	<p><em>Loading...</em></p>
 }
@@ -20,78 +19,115 @@ else
 {
 	<div class="container-fluid">
 		<div class="d-grid gap-2 d-md-flex justify-content-md-end">
-			<button class="btn btn-outline-primary me-md-2" type="button">Add Profile &nbsp; <AddIcon /></button>
+			<button class="btn btn-outline-primary me-md-2" type="button" @onclick="ShowPopup">Add Profile &nbsp; <AddIcon /></button>
 		</div>
 
 	</div>
-	
-	<table class="table table-">
+
+	<table class="table table-hover">
 		<thead>
-		<tr>
-			<th>Id</th>
-			<th>Name</th>
-			<th>CreatedDate</th>
-			<th>Class</th>
-		</tr>
+			<tr>
+				<th>Id</th>
+				<th>Name</th>
+				<th>CreatedDate</th>
+				<th>Class</th>
+			</tr>
 		</thead>
 		<tbody>
-		@foreach (var profile in profiles)
-		{
+			@foreach (var profile in _profiles)
+			{
 				<tr class="@profile.Class" @onclick="(() => SelectItems(profile.Id, true))">
-				<td>@profile.Id</td>
-				<td>@profile.Name</td>
-				<td>@profile.CreatedDate.ToShortDateString()</td>
-				<td>@profile.Class</td>
-			</tr>
-		}
+					<td>@profile.Id</td>
+					<td>@profile.Name</td>
+					<td>@profile.CreatedDate.ToShortDateString()</td>
+					<td>@profile.Class</td>
+				</tr>
+			}
 		</tbody>
 	</table>
-
 }
 
-@code {
-	private List<string> events = new();
-	private List<Profile> profiles = new()
-	{
-		new Profile
-		{
-			Id = 1, Name = "Test1", CreatedDate = DateTime.Now
-		},
 
-		new Profile
-		{
-			Id = 2, Name = "Test2", CreatedDate = DateTime.Now.AddYears(1)
-		},
-	};
+@if (_popup)
+{
+	<div class="modal" tabindex="-1" role="dialog" style="display:block;">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Adding New Profile</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="ClosePopUp"></button>
+				</div>
+				<div class="modal-body">
+					<div class="container-fluid border border border-secondary  mb-3">
+						<h3 class="mb-4 mt-3 fw-bold">Shift</h3>
+						<div class="row mb-3">
+							<span>
+								Start &nbsp; <input type="date" @bind="_profile.EndDate" />
+								<span class="ps-3">End &nbsp; <input type="date" @bind="_profile.StarDate" /></span>
+							</span>
+						</div>
+					</div>
+					<div class="card">
+						<div class="card-header">Vehicles</div>
+						<div class="card-body">
+							<table class="table">
+								<thead>
+									<tr>
+										<th>Label</th>
+										<th>Count</th>
+										<th>Capacity</th>
+									</tr>
+								</thead>
+								<tbody>
+									@for (var row = 0; row < _vehicles.Length; row += 1)
+									{
+										<tr>
+											<td>
+												@{
+													var index = row;
+												}
+												<input @bind="_vehicles[index].Label" type="text" class="form-control" /> &nbsp;
+											</td>
+											<td>
+												<input @bind="_vehicles[index].Count " type="number" class="form-control" /> &nbsp;
+											</td>
+											<td>
+												<input @bind="_vehicles[index].Capacity" type="number" class="form-control" /> &nbsp;
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div class="container-fluid border border-secondary mt-3">
+						<div class="row pt-3 mb-3">
+							<span>
+								<text class="pe-2 mt-2 fw-bold ">Onload/Offload Time</text>
+								<input @bind="_profile.OnOffLoadTime" type="number" style="width: 50px;" /> &nbsp;
+								<select @bind="_unit">
+									@foreach (var prop in new List<string>() { "SEC", "MIN", "HOUR" })
+									{
+										<option value="">@prop</option>
+									}
+								</select>
+							</span>
+						</div>
 
+						<div class="row mb-3">
+							<span>
+								<text class="pe-2 mt-2 fw-bold ">Slack Time</text>
+								<input @bind = "_profile.SlackTime" type="number" style="width: 50px;" />
+							</span>
+						</div>
 
-	void SelectItems(int index, bool toggle)
-	{
-		var item = profiles.SingleOrDefault(p => p.Id == index);
- 
-		if (toggle)
-		{
-			item.Class = item.Class == "selected" ? "" : "selected";
-		}
-		else
-		{
-			foreach (var value in profiles)
-			{
-				value.Class = "";
-			}
-			item.Class = "selected";
-		}
-	}
-
-	void showSelected()
-	{
-		events.Clear();
-		foreach (var profile in profiles)
-		{
-			if (profile.Class.Contains("selected"))
-			{
-				events.Add($"'{profile.Name}' selected. With age: '{profile.CreatedDate}'");
-			}
-		}
-	}
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @onclick="ClosePopUp">Close</button>
+					<button type="button" class="btn btn-primary" @onclick="AddProfile"> Save changes </button>
+				</div>
+			</div>
+		</div>
+	</div>
 }
